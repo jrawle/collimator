@@ -20,7 +20,9 @@ import ImportGui
 import Mesh
 
 # FreeCAD global setup
-doc = App.activeDocument()
+
+
+kkil
 
 # print("Current working directory:", os.getcwd() )
 # print("home", str(Path.home()))
@@ -29,20 +31,17 @@ doc = App.activeDocument()
 ########## path to resources ######
 
 # temporal storage for intermediate files
-#tmp_path = "/tmp/collimator_freecad"
-tmp_path = str(Path.home()) + "/collimator_tmp/collimator_freecad"
+tmp_path = "/tmp/collimator_freecad/"
 
 # all paths below will be relative to this
-resorces_root = str(Path.home()) + "/collimator.git/"
+resorces_root = str(Path.home()) + "/soller/collimator/"
 
 # json file that contains the inner grid of the collimator
-#grid_file = resorces_root + "examples/id03_pilatus_300kW/RadialCollimatorGrid.json"
-grid_file = resorces_root + "examples/id31_draft/RadialCollimatorGrid.json"
+grid_file = resorces_root + "designer/RadialCollimatorGrid_py.json"
 
 
 # json file that specifies the outer box of the collimator
-#box_file = resorces_root + "examples/id03_pilatus_300kW/RadialCollimatorBox.json"
-box_file = resorces_root + "examples/id31_draft/RadialCollimatorGrid.json"
+box_file = resorces_root + "designer/RadialCollimatorBox_py.json"
 
 # output files
 output_root = tmp_path
