@@ -40,7 +40,7 @@ def CalcMinMaxRad(r):
         np.array(
             [
                 np.tan(r - widthInRadian / 2) * dis,
-                np.tan(r + idthInRadian / 2) * dis,
+                np.tan(r + widthInRadian / 2) * dis,
             ]
         )
     )
