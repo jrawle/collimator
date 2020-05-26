@@ -23,8 +23,8 @@ ijrange = 30 # max number of grid points in each directions ... must be chosen l
 margin = np.radians(2*oAng) # adapt for width of soller channels !!!
 R1 = 0.8*xdis1 # defines the radius of the front side calculation; will be cropped later 
 R2 = 1.5*xdis2 # defines the radius of the back side calculation; will be cropped later 
-outerStructurePath = "RadialCollimatorBox_py.scad" # Path to save dimensions of outer box for openSCAD 
-innerStructurePath =  "RadialCollimatorGrid_py.scad" # Path to save honeycomb structure for openSCAD 
+outerStructurePath = "RadialCollimatorBox_py.json" # Path to save dimensions of outer box for CAD package
+innerStructurePath =  "RadialCollimatorGrid_py.json" # Path to save honeycomb structure for CAD package
 
 ## Transformation functions and constants
 
@@ -108,7 +108,7 @@ def getWall(latticepointSp, cen, r1, r2):
         tmp.append([SphereToCartesian(r1, c), SphereToCartesian(r2, c), SphereToCartesian(r2, d), SphereToCartesian(r1, d)])
     return tmp
 
-def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2):
+def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2, formet='json'):
 
     # Calculation of outside box    
     theta1, phi1 = ToSpherical([detDis, detYminus, detZminus])
@@ -157,15 +157,20 @@ def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng,
     box = [[faceTop, fNormTop], [faceBottom, fNormBottom], [faceLeft, fNormLeft],
            [faceRight, fNormRight], [faceFront, fNormFront], [faceBack, fNormBack]]
 
-    boxExport = 'mybox=' + str(box).replace('array(','').replace(')','').replace(' ','') + ';'
-    cornersExport = ('c1ThetaMinPhiMin=' + str(c1ThetaMinPhiMin.tolist()) +
-                                      ';\nc1ThetaMinPhiMax=' + str(c1ThetaMinPhiMax.tolist()) +
-                                      ';\nc1ThetaMaxPhiMin=' + str(c1ThetaMaxPhiMin.tolist()) +
-                                      ';\nc1ThetaMaxPhiMax=' + str(c1ThetaMaxPhiMax.tolist()) +
-                                      ';\nc2ThetaMinPhiMin=' + str(c2ThetaMinPhiMin.tolist()) +
-                                      ';\nc2ThetaMinPhiMax=' + str(c2ThetaMinPhiMax.tolist()) +
-                                      ';\nc2ThetaMaxPhiMin=' + str(c2ThetaMaxPhiMin.tolist()) +
-                                      ';\nc2ThetaMaxPhiMax=' + str(c2ThetaMaxPhiMax.tolist()) + ';\n').replace(' ','')
+    cornersExport = ('"c1ThetaMinPhiMin"=' + str(c1ThetaMinPhiMin.tolist()) +
+                                      ';\n"c1ThetaMinPhiMax"=' + str(c1ThetaMinPhiMax.tolist()) +
+                                      ';\n"c1ThetaMaxPhiMin"=' + str(c1ThetaMaxPhiMin.tolist()) +
+                                      ';\n"c1ThetaMaxPhiMax"=' + str(c1ThetaMaxPhiMax.tolist()) +
+                                      ';\n"c2ThetaMinPhiMin"=' + str(c2ThetaMinPhiMin.tolist()) +
+                                      ';\n"c2ThetaMinPhiMax"=' + str(c2ThetaMinPhiMax.tolist()) +
+                                      ';\n"c2ThetaMaxPhiMin"=' + str(c2ThetaMaxPhiMin.tolist()) +
+                                      ';\n"c2ThetaMaxPhiMax"=' + str(c2ThetaMaxPhiMax.tolist())).replace(' ','')
+    if formet == 'scad':
+        boxExport = 'mybox=' + str(box).replace('array(','').replace(')','').replace(' ','') + ';'
+        cornersExport = cornersExport.replace('"', '') + ';\n'    
+    else:
+        boxExport = ('{"mybox":' + str(box).replace('array(','').replace(')','').replace(' ','') + ',').replace('.,','.0,').replace('.]','.0]')
+        cornersExport = (cornersExport.replace('=', ':').replace(';', ',') + '}\n').replace('.,','.0,').replace('.]','.0]')
     f = open(outerStructurePath, 'w')
     f.write(boxExport + '\n' + cornersExport)
     f.close()
@@ -194,10 +199,13 @@ def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng,
     for c in centersSpRed:
         myWalls.extend(getWall(latticepointSp, c, R1, R2))
 
-    wallExport = 'mywalls=' + str(myWalls).replace(' ','') + ';'
+    if format == 'scad':
+        wallExport = 'mywalls=' + str(myWalls).replace(' ','') + ';'
+    else:
+        wallExport = ('{"mywalls":' + str(myWalls).replace(' ','') + '}').replace('.,','.0,').replace('.]','.0]')
     f = open(innerStructurePath, 'w')
     f.write(wallExport)
     f.close()
     
 ###################################    
-soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2)
+soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2, 'json')
