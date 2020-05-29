@@ -108,7 +108,7 @@ def getWall(latticepointSp, cen, r1, r2):
         tmp.append([SphereToCartesian(r1, c), SphereToCartesian(r2, c), SphereToCartesian(r2, d), SphereToCartesian(r1, d)])
     return tmp
 
-def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2, formet='json'):
+def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2, format='json'):
 
     # Calculation of outside box    
     theta1, phi1 = ToSpherical([detDis, detYminus, detZminus])
@@ -165,7 +165,7 @@ def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng,
                                       ';\n"c2ThetaMinPhiMax"=' + str(c2ThetaMinPhiMax.tolist()) +
                                       ';\n"c2ThetaMaxPhiMin"=' + str(c2ThetaMaxPhiMin.tolist()) +
                                       ';\n"c2ThetaMaxPhiMax"=' + str(c2ThetaMaxPhiMax.tolist())).replace(' ','')
-    if formet == 'scad':
+    if format == 'scad':
         boxExport = 'mybox=' + str(box).replace('array(','').replace(')','').replace(' ','') + ';'
         cornersExport = cornersExport.replace('"', '') + ';\n'    
     else:

@@ -20,9 +20,7 @@ import ImportGui
 import Mesh
 
 # FreeCAD global setup
-
-
-kkil
+doc = App.activeDocument()
 
 # print("Current working directory:", os.getcwd() )
 # print("home", str(Path.home()))
