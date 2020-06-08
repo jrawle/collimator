@@ -1,0 +1,40 @@
+
+# ring pattern calculation
+ringpattern:
+  pinhole_distance: 1                 # distance lightsource pinhole in mm
+  reflection_width: .25       # natual width of the simulated reflections in deg
+  ringpositions: [11.98, 13.24, 13.7, 17.9, 20.83, 21.88, 23.31, 24.1, 24.77, 25.02, 26.67, 27.6, 28.98, 29.33, 31.46, 32.07, 32.78, 34.08, 35.71, 36,35, 36.5, 37.14, 38.04, 38.99, 39.79, 40.48]          # in deg
+
+# source displacement in simulation
+simulation_range:
+  min: -10
+  max: 10
+  step: .1
+
+# povray output parameters
+povray_output:
+    width: 601
+    height: 601
+    antialiasing: 0.001
+
+# Camera position
+camera:
+  #~ - orthographic
+  #~ - angle: 35
+  #~ - up: [0,100,0]
+  #~ - right: [100,0,0] 
+  #~ - location: [120, 100, 120]
+  #~ - look_at: [120,600, 120]
+  
+  - orthographic
+  - angle: 57 
+  - up: [0,100,0]
+  - right: [100,0,0] 
+  - location: [0, 100, 0]
+  - look_at: [0,400, 0]
+  
+# input file 
+input_file: collimator_500_100_400_260_290_-15_mid.inc       #.inc file (converted from stl)
+
+# output path
+output_dir: /tmp/raytracing
