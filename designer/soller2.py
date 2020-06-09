@@ -10,14 +10,14 @@ import scipy.optimize
 from scipy.special import erfc
 
 ## Geometrical parameters of collimator structure
-detDis = 350    # Sample detector distance in mm
-xdis1 = 40      # Distance from sample to front side on x axis in mm
-xdis2 = 240     # Distance from sample to back side on x mm axis
-detYsize = 270  # Horizontal detector size in mm
-detZsize = 40   # Vertical detector size in mm
-detYminus = -15 # Offset to define direct beam position in y - direction 
-detZminus = -detZsize/2 # Offset to define direct beam position in z - direction 
-oAng = 1.75  # Opening angle for one indivitual channel in degree 
+detDis = 550    # Sample detector distance in mm
+xdis1 = 20      # Distance from sample to front side on x axis in mm
+xdis2 = 750     # Distance from sample to back side on x mm axis
+detYsize = 230  # Horizontal detector size in mm
+detZsize = 230   # Vertical detector size in mm
+detYminus = -5 # Offset to define direct beam position in y - direction 
+detZminus = -5 # Offset to define direct beam position in z - direction 
+oAng = 0.3  # Opening angle for one indivitual channel in degree 
 ijrange = 30 # max number of grid points in each directions ... must be chosen large enough to cover the whole collimator area; depends on detector size and cannel opening angle
 rot = -15
 
@@ -25,8 +25,8 @@ rot = -15
 margin = np.radians(2*oAng) # adapt for width of soller channels !!!
 R1 = 0.8*xdis1 # defines the radius of the front side calculation; will be cropped later 
 R2 = 1.5*xdis2 # defines the radius of the back side calculation; will be cropped later 
-outerStructurePath = "RadialCollimatorBox_py.json" # Path to save dimensions of outer box for CAD package
-innerStructurePath =  "RadialCollimatorGrid_py.json" # Path to save honeycomb structure for CAD package
+outerStructurePath = "RadialCollimatorBox.scad" # Path to save dimensions of outer box for CAD package
+innerStructurePath =  "RadialCollimatorGrid.scad" # Path to save honeycomb structure for CAD package
 
 ## Transformation functions and constants
 
@@ -64,8 +64,8 @@ def Ry():
 
 def Rx(phi):
     global rot
-    a = np.array([[np.cos(np.radians(rot)), np.sin(np.radians(rot)), 0],
-                  [-np.sin(np.radians(rot)), np.cos(np.radians(rot)), 0],
+    a = np.array([[np.cos(np.radians(-rot)), np.sin(np.radians(-rot)), 0],
+                  [-np.sin(np.radians(-rot)), np.cos(np.radians(-rot)), 0],
                   [             0,                     0,             1]])
     b = np.array([[1,     0,          0],
                   [0, np.cos(phi), np.sin(phi)],
@@ -82,9 +82,9 @@ def ToPolarCoordinates(v):
 
 def PointOnUnitSphere(i, j, a):
     if (i==0 and j==0):
-        return np.linalg.multi_dot([ Rx(a[2]), Ry(), np.array([0, 0, 1]) ])
+        return np.linalg.multi_dot([ Ry(), Rx(a[2]), np.array([0, 0, 1]) ])
     else:
-        return np.linalg.multi_dot([ Rx(a[2]), Ry(),
+        return np.linalg.multi_dot([ Ry(), Rx(a[2]),
                                      ScaledSphereToCartesian2(ToPolarCoordinates(i*a1 + j*a2), a,
                                                              NonLinScale(np.linalg.norm(i*a1 + j*a2)))
                                      ])
@@ -116,7 +116,7 @@ def getWall(latticepointSp, cen, r1, r2):
         tmp.append([SphereToCartesian(r1, c), SphereToCartesian(r2, c), SphereToCartesian(r2, d), SphereToCartesian(r1, d)])
     return tmp
 
-def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2, format='json'):
+def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, rot, R1, R2, format='json'):
 
     # Calculation of outside box    
     theta1, phi1 = ToSpherical([detDis, detYminus, detZminus])
@@ -186,7 +186,7 @@ def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng,
 
     # Calculation of inner comb structure
     alpha = oAng * alphafactor
-    params = [alpha, 1.001, np.radians(0)]
+    params = [alpha, 1.000, np.radians(0)]
     # 3rd parameter: rotation of grid around beam axis - superseded by rot parameter?
 
     thetaMinG = thetaMin - margin
@@ -216,4 +216,4 @@ def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng,
     f.close()
     
 ###################################    
-soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2, 'json')
+soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, rot, R1, R2, 'scad')
