@@ -58,13 +58,15 @@ final_freecad_file = output_root + "collimator.FCStd"
 # to reduce occupied ram resouces the 3d model will be created in two steps
 # first generating chunks consisting of n (`chunksize`) blades which will be
 # fused together afterwards
-chunksize = 100
+chunksize = 98
 
 # wallthickness of inner grid structure in mm
-grid_wallthickness = .3
+grid_wallthickness = .4
+#grid_wallthickness = .3
 
 # wallthickness of outer box wall in mm
-box_wallthickness = 1
+box_wallthickness = 2
+#box_wallthickness = 4
 
 ########## helper functions and classes ######
 
@@ -81,6 +83,9 @@ def faceNormal(v1, v2):
     tmp = np.cross(v1, v2)
     return tmp / np.linalg.norm(tmp)
 
+def unitVect(v1,v2):
+	tmp = v2-v1
+	return tmp / (tmp**2).sum()**0.5
 
 class Blade:
     def __init__(self, corners_centerplain, wallthickness, name, box_x_min, box_x_max):
@@ -99,30 +104,35 @@ class Blade:
         # list that will take corner positions for the blade
         fsw = self.normal * self.half_wallth
 
+        # lengthen sides to avoid missing triangle
+        extra = wallthickness * np.cos(np.radians(30)) / 3
+        l1 = -unitVect(self.cpc[3], self.cpc[0]) * extra
+        l2 = -unitVect(self.cpc[2], self.cpc[1]) * extra
+
         self.corners = [
             cut_line(
-                self.cpc[3] - fsw, self.cpc[2] - fsw, box_x_min
+                self.cpc[3] - fsw + l2, self.cpc[2] - fsw + l1, box_x_min
             ),  # self.cpc[3] - fsw,
             cut_line(
-                self.cpc[0] - fsw, self.cpc[1] - fsw, box_x_min
+                self.cpc[0] - fsw - l1, self.cpc[1] - fsw - l2, box_x_min
             ),  # self.cpc[0] - fsw,
             cut_line(
-                self.cpc[1] - fsw, self.cpc[0] - fsw, box_x_max
+                self.cpc[1] - fsw - l2, self.cpc[0] - fsw - l1, box_x_max
             ),  # self.cpc[1] - fsw,
             cut_line(
-                self.cpc[2] - fsw, self.cpc[3] - fsw, box_x_max
+                self.cpc[2] - fsw + l1, self.cpc[3] - fsw + l2, box_x_max
             ),  # self.cpc[2] - fsw,
             cut_line(
-                self.cpc[3] + fsw, self.cpc[2] + fsw, box_x_min
+                self.cpc[3] + fsw + l2, self.cpc[2] + fsw + l1, box_x_min
             ),  # self.cpc[3] + fsw,
             cut_line(
-                self.cpc[0] + fsw, self.cpc[1] + fsw, box_x_min
+                self.cpc[0] + fsw - l1, self.cpc[1] + fsw - l2, box_x_min
             ),  # self.cpc[0] + fsw,
             cut_line(
-                self.cpc[1] + fsw, self.cpc[0] + fsw, box_x_max
+                self.cpc[1] + fsw - l2, self.cpc[0] + fsw - l1, box_x_max
             ),  # self.cpc[1] + fsw,
             cut_line(
-                self.cpc[2] + fsw, self.cpc[3] + fsw, box_x_max
+                self.cpc[2] + fsw + l1, self.cpc[3] + fsw + l2, box_x_max
             ),  # self.cpc[2] + fsw,
         ]
 
@@ -220,7 +230,6 @@ with open(grid_file) as json_file:
 with open(box_file) as json_file:
     json_data_box = json.load(json_file)
 
-
 walls = json_data_walls["mywalls"]  # [0:50] #to reduce the number of blades for dev
 boxwalls = json_data_box["mybox"][0:4]
 
@@ -241,6 +250,8 @@ print("blade generation done")
 clip_box = ClipBox(json_data_box)
 
 print("clipbox done")
+
+#exit()
 
 blade_chunks = [blades[x : x + chunksize] for x in range(0, len(blades), chunksize)]
 print("total number of chunks", len(blade_chunks))
