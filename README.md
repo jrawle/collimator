@@ -1,75 +1,39 @@
 # collimator
-This is a collection of scripts to design 3d printed radial collimators.
+This is a collection of scripts to design 3D printed radial ("Soller slit") collimators.
 
-## Prerequisite & Setup
-as this project is not stable yet and there are still pathes everywhere in the scripts it is suggested to put a link to the git in the user home
-```
-$ cd ~
-$ ln -s [PATH TO collimator git] collimator.git
-```
-- FreeCAD
-  - tested with FreeCAD 0.18 (Linux App Image)
-  - To have the scripts availabe in the either change the _User macros location_ or link the files inside `FreeCAD_scripts` to the default _user macros location_ (`ln -s collimator.git/FreeCAD_scripts/Collimator.FCMacro ~/.FreeCAD/MacroCollimator.FCMacro`)
+## Prerequisites
+- Python (all components should now work with Python 3)
+  - numpy
+  - scipy
+  - vapory (to allow raytracing with POV-Ray in Python)
+- [FreeCAD](https://www.freecad.org/) 0.18
+- [POV-Ray](https://www.poyray.org/) 3.7.0.8
+- [stltools](https://github.com/rsmith-nl/stltools)
 
-## Steps to design a (Soller) collimator
-### 1. create grid
-  - using python
+## Steps to design a Soller collimator
+### 1. Design your grid
+Edit the script `designer/soller.py` to meet your requirements. Most parameters are as in the earier Mathematica vesion of the script.
+  - `format` should usually be `json`
+    - `scad` is retained as an option to produce output compatible with [OpenSCAD](https://openscad.org/), which can allow a quick preview of the model without having to render
+  - `part` should be `0` unless you want to generate only a subset of the grid walls (this can be used as part of the process to facilitate blob-free printing)
+
+Run the script to produce the `RadialCollimatorBox` and `RadialCollimatorGrid` files.
   
-    _to come_
-  - using Mathematica
-  
-    _to come_
-### 2. create 3d model
-  - using FreeCAD
-  
-    - put the correct pathes in the `/.FreeCAD/Macro`
-  - OpenSCAD
-  
-    _to_come
+### 2. Create the 3D model
+  1. Open `Collimator.FCMacro` in FreeCAD.
+      - Ensure the paths to your .json files are correct
+      - Edit the relevant lines to set the desired wall thicknesses
+  2. Create a new empty document
+  3. Execute the macro in the editor
     
-### 3. validate 3d model
-  This is the procedure to do some raytracing on the files generated in the steps above.
-  - convert a _.stl_ file into _.inc_ as  _povray_
-    
-```
-$ python2.7 external_tools/py-stl-3.1/stl2pov.py RadialCollimator.stl RadialCollimator.inc
-```
+### 3. Test the model using raytracing
+  1. Use `stl2pov` from stltools to produce a `.inc` file
+  2. Use the `raytracing/povray.py` script, in particular its `scene` function to render what an image would look like on an area detector; examples can be found in the script. It is recommended to use an interactive Python shell while working with this
+     - Always be sure to include the `auto_camera_angle=False` option, otherwise the view will not be as you intended
 
-  - For the follwoing steps some python dependencies need to be installed e.g. in conda enviroment:
-  
-```
-conda create --name collimator_env python=3.7
-conda activate collimator_env
-conda config --env --append channels conda-forge
-conda install silx moviepy scipy numpy matplotlib imageio jupyter pyyaml
-pip install vapory
-```
- 
- - run povray using
- 
-```
-$ ./raytracing/run_rings_povray.sh
---- or --- if you happen to have a cluster at hand:
-$ oarsub -l nodes=1/core=8,walltime=00:02:00 ./raytracing/run_rings_povray.sh
-```
- 
- - look at the results in a jupter notebook
- 
-```
-$ cd raytracing
-$ jupyter notebook
-```
-
-## Software dependencies
-- python
-- [FreeCAD](https://www.freecadweb.org)
-- [OpenSCAD](https://www.openscad.org)
-- povray
+### 4. Print the grid
+Your mileage may vary, depending on the material used and the print options selected.
 
 ## Further reading
 - [A novel 3D printed radial collimator for x-ray diffraction](https://aip.scitation.org/doi/suppl/10.1063/1.5063520) by S. Kowarik, L. Bogula, S. Boitano, F. Carlà, H. Pithan, P. Schäfer, H. Wilming, A. Zykov and L. Pithan 
 
-
-## Thanks to ... 
-- [py-stl-3.1](https://rsmith.home.xs4all.nl/software/py-stl-stl2pov.html) by Roland Smith
-   ... the corresponding packages are parcially redistributed in `\external_toos`
