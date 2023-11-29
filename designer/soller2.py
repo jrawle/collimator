@@ -196,12 +196,12 @@ def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng,
     
     # Generating list of lattice points that represent the center of the combs
     centerIndex = np.fromfunction(lambda i,j: np.array([i-j, i+2*j-3*ijrange]), (ijrange*2+1,ijrange*2+1)).reshape(2,-1).transpose()
-    centers = np.array(map(ToSpherical_PointOnUnitSphere, centerIndex[:,0], centerIndex[:,1], np.tile(params, (len(centerIndex[:,0]), 1))))
+    centers = np.array(list(map(ToSpherical_PointOnUnitSphere, centerIndex[:,0], centerIndex[:,1], np.tile(params, (len(centerIndex[:,0]), 1)))))
     centersSpRed = centerIndex[np.where(np.logical_and(np.logical_and(centers[:,2] >= thetaMinG, centers[:,2] <= thetaMaxG), np.logical_and(centers[:,3] >= phiMinG, centers[:,3] <= phiMaxG)))]
 
     # Generating list of lattice points that produce the honey-comb structure
     latIndex = np.concatenate((np.add(centerIndex, np.tile([1,0], (len(centerIndex), 1))), np.add(centersSpRed, np.tile([0,1], (len(centersSpRed), 1)))))
-    latticeSpRed =  np.array(map(ToSpherical_PointOnUnitSphere, latIndex[:,0], latIndex[:,1], np.tile(params, (len(latIndex[:,0]), 1))))
+    latticeSpRed =  np.array(list(map(ToSpherical_PointOnUnitSphere, latIndex[:,0], latIndex[:,1], np.tile(params, (len(latIndex[:,0]), 1)))))
     latticepointSp = infDict(map(lambda i: [([i][0][0],[i][0][1]),[[i][0][2],[i][0][3]]], latticeSpRed))
     myWalls = []
     for c in centersSpRed:
