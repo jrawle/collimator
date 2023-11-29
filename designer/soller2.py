@@ -10,23 +10,23 @@ import scipy.optimize
 from scipy.special import erfc
 
 ## Geometrical parameters of collimator structure
-detDis = 550    # Sample detector distance in mm
-xdis1 = 20      # Distance from sample to front side on x axis in mm
-xdis2 = 750     # Distance from sample to back side on x mm axis
-detYsize = 230  # Horizontal detector size in mm
-detZsize = 230   # Vertical detector size in mm
-detYminus = -5 # Offset to define direct beam position in y - direction 
-detZminus = -5 # Offset to define direct beam position in z - direction 
-oAng = 0.3  # Opening angle for one indivitual channel in degree 
+detDis = 500    # Sample detector distance in mm
+xdis1 = 100      # Distance from sample to front side on x axis in mm
+xdis2 = 356     # Distance from sample to back side on x mm axis
+detYsize = 260  # Horizontal detector size in mm
+detZsize = 290   # Vertical detector size in mm
+detYminus = -detYsize/2 # Offset to define direct beam position in y - direction 
+detZminus = -15 # Offset to define direct beam position in z - direction 
+oAng = 1  # Opening angle for one indivitual channel in degree 
 ijrange = 30 # max number of grid points in each directions ... must be chosen large enough to cover the whole collimator area; depends on detector size and cannel opening angle
 rot = -15
 
 # Parameters that should usually stay the scame for all calculations
-margin = np.radians(2*oAng) # adapt for width of soller channels !!!
+margin = np.radians( 14 * oAng) # adapt for width of soller channels !!!
 R1 = 0.8*xdis1 # defines the radius of the front side calculation; will be cropped later 
 R2 = 1.5*xdis2 # defines the radius of the back side calculation; will be cropped later 
-outerStructurePath = "RadialCollimatorBox.scad" # Path to save dimensions of outer box for CAD package
-innerStructurePath =  "RadialCollimatorGrid.scad" # Path to save honeycomb structure for CAD package
+outerStructurePath = "RadialCollimatorBox_py.json" # Path to save dimensions of outer box for CAD package
+innerStructurePath =  "RadialCollimatorGrid_py.json" # Path to save honeycomb structure for CAD package
 
 ## Transformation functions and constants
 
@@ -216,4 +216,4 @@ def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng,
     f.close()
     
 ###################################    
-soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, rot, R1, R2, 'scad')
+soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, rot, R1, R2, 'json')

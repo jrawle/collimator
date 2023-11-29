@@ -8,23 +8,29 @@
 import numpy as np
 import scipy.optimize
 
+# Format: 'json' or 'scad'
+format = 'json'
+
+# Part to produce. Each is missing 1/3 of the walls. 0 = complete grid
+part = 1
+
 ## Geometrical parameters of collimator structure
-detDis = 350    # Sample detector distance in mm
-xdis1 = 40      # Distance from sample to front side on x axis in mm
-xdis2 = 240     # Distance from sample to back side on x mm axis
-detYsize = 270  # Horizontal detector size in mm
-detZsize = 40   # Vertical detector size in mm
-detYminus = -15 # Offset to define direct beam position in y - direction 
-detZminus = -detZsize/2 # Offset to define direct beam position in z - direction 
-oAng = 1.75  # Opening angle for one indivitual channel in degree 
+detDis = 500    # Sample detector distance in mm
+xdis1 = 210      # Distance from sample to front side on x axis in mm
+xdis2 = 225     # Distance from sample to back side on x mm axis
+detYsize = 260  # Horizontal detector size in mm
+detZsize = 290   # Vertical detector size in mm
+detYminus = -detYsize/2 # Offset to define direct beam position in y - direction 
+detZminus = -15 # Offset to define direct beam position in z - direction 
+oAng = 2.2 # Opening angle for one indivitual channel in degree 
 ijrange = 30 # max number of grid points in each directions ... must be chosen large enough to cover the whole collimator area; depends on detector size and cannel opening angle
 
 # Parameters that should usually stay the scame for all calculations
 margin = np.radians(2*oAng) # adapt for width of soller channels !!!
 R1 = 0.8*xdis1 # defines the radius of the front side calculation; will be cropped later 
 R2 = 1.5*xdis2 # defines the radius of the back side calculation; will be cropped later 
-outerStructurePath = "RadialCollimatorBox_py.json" # Path to save dimensions of outer box for CAD package
-innerStructurePath =  "RadialCollimatorGrid_py.json" # Path to save honeycomb structure for CAD package
+outerStructurePath = "RadialCollimatorBox_py" # Path to save dimensions of outer box for CAD package
+innerStructurePath =  "RadialCollimatorGrid_py" # Path to save honeycomb structure for CAD package
 
 ## Transformation functions and constants
 
@@ -60,8 +66,8 @@ def Ry():
                      [-np.sin(np.pi/2), 0, np.cos(np.pi/2)]])
 
 def Rx(phi):
-    a = np.array([[np.cos(np.radians(-15)), np.sin(np.radians(-15)), 0],
-                  [-np.sin(np.radians(-15)), np.cos(np.radians(-15)), 0],
+    a = np.array([[np.cos(np.radians(-0)), np.sin(np.radians(-0)), 0],
+                  [-np.sin(np.radians(-0)), np.cos(np.radians(-0)), 0],
                   [             0,                     0,             1]])
     b = np.array([[1,     0,          0],
                   [0, np.cos(phi), np.sin(phi)],
@@ -95,21 +101,22 @@ class infDict(dict):
         return dict.get(self, key, np.inf)
 
 def getWall(latticepointSp, cen, r1, r2):
+    global part
     a = latticepointSp[(cen[0]-1, cen[1])]
     b = latticepointSp[(cen[0], cen[1]-1)]
     c = latticepointSp[(cen[0]+1, cen[1]-1)]
     d = latticepointSp[(cen[0]+1, cen[1])]
     tmp = []
-    if(np.max(a) != np.inf and np.max(a) != np.inf):
+    if(part != 3 and np.max(a) != np.inf and np.max(a) != np.inf):
         tmp.append([SphereToCartesian(r1, a), SphereToCartesian(r2, a), SphereToCartesian(r2, b), SphereToCartesian(r1, b)])
-    if(np.max(b) != np.inf and np.max(c) != np.inf):
+    if(part != 2 and np.max(b) != np.inf and np.max(c) != np.inf):
         tmp.append([SphereToCartesian(r1, b), SphereToCartesian(r2, b), SphereToCartesian(r2, c), SphereToCartesian(r1, c)])
-    if(np.max(c) != np.inf and np.max(d) != np.inf):
+    if(part != 1 and np.max(c) != np.inf and np.max(d) != np.inf):
         tmp.append([SphereToCartesian(r1, c), SphereToCartesian(r2, c), SphereToCartesian(r2, d), SphereToCartesian(r1, d)])
     return tmp
 
 def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2, format='json'):
-
+    global centerIndex, centers, centersSpRed, latIndex, latticeSpRed, latticepointSp
     # Calculation of outside box    
     theta1, phi1 = ToSpherical([detDis, detYminus, detZminus])
     theta2, phi2 = ToSpherical([detDis, detYminus, detZminus + detZsize])
@@ -171,7 +178,7 @@ def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng,
     else:
         boxExport = ('{"mybox":' + str(box).replace('array(','').replace(')','').replace(' ','') + ',').replace('.,','.0,').replace('.]','.0]')
         cornersExport = (cornersExport.replace('=', ':').replace(';', ',') + '}\n').replace('.,','.0,').replace('.]','.0]')
-    f = open(outerStructurePath, 'w')
+    f = open(outerStructurePath + '.' + format, 'w')
     f.write(boxExport + '\n' + cornersExport)
     f.close()
 
@@ -203,9 +210,9 @@ def soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng,
         wallExport = 'mywalls=' + str(myWalls).replace(' ','') + ';'
     else:
         wallExport = ('{"mywalls":' + str(myWalls).replace(' ','') + '}').replace('.,','.0,').replace('.]','.0]')
-    f = open(innerStructurePath, 'w')
+    f = open(innerStructurePath + '.' + format, 'w')
     f.write(wallExport)
     f.close()
     
 ###################################    
-soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2, 'json')
+soller(detDis, detYminus, detZminus, detYsize, detZsize, xdis1, xdis2, oAng, alphafactor, margin, ijrange, R1, R2, format)

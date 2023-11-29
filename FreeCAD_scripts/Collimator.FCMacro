@@ -29,7 +29,7 @@ doc = App.activeDocument()
 ########## path to resources ######
 
 # temporal storage for intermediate files
-tmp_path = "/tmp/collimator_freecad/"
+tmp_path = "/scratch/collimator_freecad/"
 
 # all paths below will be relative to this
 resorces_root = str(Path.home()) + "/soller/collimator/"
@@ -61,7 +61,7 @@ final_freecad_file = output_root + "collimator.FCStd"
 chunksize = 98
 
 # wallthickness of inner grid structure in mm
-grid_wallthickness = .4
+grid_wallthickness = .5
 #grid_wallthickness = .3
 
 # wallthickness of outer box wall in mm
@@ -105,35 +105,35 @@ class Blade:
         fsw = self.normal * self.half_wallth
 
         # lengthen sides to avoid missing triangle
-        extra = wallthickness * np.cos(np.radians(30)) / 3
+        extra = 0.98 * wallthickness * np.cos(np.radians(30)) / 3
         l1 = -unitVect(self.cpc[3], self.cpc[0]) * extra
         l2 = -unitVect(self.cpc[2], self.cpc[1]) * extra
 
         self.corners = [
-            cut_line(
-                self.cpc[3] - fsw + l2, self.cpc[2] - fsw + l1, box_x_min
-            ),  # self.cpc[3] - fsw,
-            cut_line(
+            np.round(cut_line(
+                self.cpc[3] - fsw + l1, self.cpc[2] - fsw + l2, box_x_min
+            ), 6),
+            np.round(cut_line(
                 self.cpc[0] - fsw - l1, self.cpc[1] - fsw - l2, box_x_min
-            ),  # self.cpc[0] - fsw,
-            cut_line(
+            ), 6),
+            np.round(cut_line(
                 self.cpc[1] - fsw - l2, self.cpc[0] - fsw - l1, box_x_max
-            ),  # self.cpc[1] - fsw,
-            cut_line(
-                self.cpc[2] - fsw + l1, self.cpc[3] - fsw + l2, box_x_max
-            ),  # self.cpc[2] - fsw,
-            cut_line(
-                self.cpc[3] + fsw + l2, self.cpc[2] + fsw + l1, box_x_min
-            ),  # self.cpc[3] + fsw,
-            cut_line(
+            ), 6),
+            np.round(cut_line(
+                self.cpc[2] - fsw + l2, self.cpc[3] - fsw + l1, box_x_max
+            ), 6),
+            np.round(cut_line(
+                self.cpc[3] + fsw + l1, self.cpc[2] + fsw + l2, box_x_min
+            ), 6),
+            np.round(cut_line(
                 self.cpc[0] + fsw - l1, self.cpc[1] + fsw - l2, box_x_min
-            ),  # self.cpc[0] + fsw,
-            cut_line(
+            ), 6),
+            np.round(cut_line(
                 self.cpc[1] + fsw - l2, self.cpc[0] + fsw - l1, box_x_max
-            ),  # self.cpc[1] + fsw,
-            cut_line(
-                self.cpc[2] + fsw + l1, self.cpc[3] + fsw + l2, box_x_max
-            ),  # self.cpc[2] + fsw,
+            ), 6),
+            np.round(cut_line(
+                self.cpc[2] + fsw + l2, self.cpc[3] + fsw + l1, box_x_max
+            ), 6)
         ]
 
         self.faces = [
@@ -148,16 +148,28 @@ class Blade:
         faces = list()
         for face in self.faces:
             edges = list()
+            vectors = list()
             for i in range(4):
+                v1 = Vector(*self.corners[face[i]])
+                v2 = Vector(*self.corners[face[(i + 1) % 4]])
                 edges.append(
                     Part.Edge(
-                        Part.LineSegment(
-                            Vector(*self.corners[face[i]]),
-                            Vector(*self.corners[face[(i + 1) % 4]]),
-                        )
+                        Part.LineSegment(v1, v2)
                     )
                 )
-            faces.append(Part.Face(Part.Wire(edges)))
+                vectors.extend([v1, v2])
+                #print(self.corners[face[i]], self.corners[face[(i + 1) % 4]])
+            f = Part.Wire(edges)
+            #print(f.Edges)
+            #print(f.isValid())
+            plane = Part.Plane(vectors[0], vectors[1], vectors[3])
+            fx = Part.Face(plane, f)
+            #print(fx.Area)
+            #print(fx.isValid())
+
+            #faces.append(Part.Face(Part.Wire(edges)))
+            faces.append(fx)
+            #exit()
 
         shell = Part.Compound(faces)
         self.solid = Part.Solid(Part.Shell(faces))
